@@ -1,44 +1,94 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>ファイルアップロード</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>簡易掲示板</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f7f7f7;
+      padding: 2em;
+    }
+    .board {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 1em;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .post {
+      border-bottom: 1px solid #ddd;
+      padding: 0.5em 0;
+    }
+    .post:last-child {
+      border-bottom: none;
+    }
+    .meta {
+      font-size: 0.8em;
+      color: #555;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 0.5em;
+      margin-top: 0.5em;
+      box-sizing: border-box;
+    }
+    button {
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1976d2;
+    }
+  </style>
 </head>
 <body>
-  <h1>CDNへのファイルアップロード</h1>
-  <form id="uploadForm">
-    <input type="file" id="fileInput" name="file" />
-    <button type="submit">アップロード</button>
-  </form>
-  <div id="status"></div>
+  <div class="board">
+    <h2>簡易掲示板</h2>
+    <form id="postForm">
+      <input type="text" id="name" placeholder="名前" required />
+      <textarea id="message" placeholder="メッセージ" required></textarea>
+      <button type="submit">投稿</button>
+    </form>
+    <hr/>
+    <div id="posts"></div>
+  </div>
 
   <script>
-    const form = document.getElementById("uploadForm");
-    const status = document.getElementById("status");
+    const postForm = document.getElementById("postForm");
+    const postsDiv = document.getElementById("posts");
 
-    form.addEventListener("submit", async (e) => {
+    postForm.addEventListener("submit", function(e) {
       e.preventDefault();
-      const file = document.getElementById("fileInput").files[0];
-      if (!file) {
-        status.textContent = "ファイルを選択してください";
-        return;
-      }
 
-      const formData = new FormData();
-      formData.append("file", file);
+      const name = document.getElementById("name").value.trim();
+      const message = document.getElementById("message").value.trim();
+      const time = new Date().toLocaleString();
 
-      const response = await fetch("/upload", {
-        method: "POST",
-        body: formData
-      });
+      if (name && message) {
+        const postElement = document.createElement("div");
+        postElement.className = "post";
+        postElement.innerHTML = `
+          <div class="meta"><strong>${escapeHtml(name)}</strong> - ${time}</div>
+          <div class="content">${escapeHtml(message)}</div>
+        `;
+        postsDiv.prepend(postElement);
 
-      const result = await response.json();
-      if (response.ok) {
-        status.innerHTML = `アップロード成功: <a href="${result.url}" target="_blank">${result.url}</a>`;
-      } else {
-        status.textContent = `アップロード失敗: ${result.error}`;
+        postForm.reset();
       }
     });
+
+    // XSS対策：HTMLエスケープ
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
   </script>
 </body>
 </html>
