@@ -3,36 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>簡易掲示板</title>
+  <title>なんJ風掲示板</title>
   <style>
     body {
       font-family: sans-serif;
-      background: #f7f7f7;
-      padding: 2em;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 1em;
     }
-    .board {
-      max-width: 600px;
+    .container {
+      max-width: 800px;
       margin: auto;
       background: white;
       padding: 1em;
       border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .post {
-      border-bottom: 1px solid #ddd;
-      padding: 0.5em 0;
-    }
-    .post:last-child {
-      border-bottom: none;
-    }
-    .meta {
-      font-size: 0.8em;
-      color: #555;
+    h2 {
+      margin-top: 0;
     }
     input, textarea, button {
       width: 100%;
+      margin: 0.5em 0;
       padding: 0.5em;
-      margin-top: 0.5em;
       box-sizing: border-box;
     }
     button {
@@ -45,50 +37,124 @@
     button:hover {
       background: #1976d2;
     }
+    .thread, .post {
+      border-bottom: 1px solid #ddd;
+      padding: 0.5em 0;
+    }
+    .meta {
+      font-size: 0.8em;
+      color: #555;
+    }
+    .back-link {
+      cursor: pointer;
+      color: #2196f3;
+      margin-bottom: 1em;
+      display: inline-block;
+    }
   </style>
 </head>
 <body>
-  <div class="board">
-    <h2>簡易掲示板</h2>
-    <form id="postForm">
-      <input type="text" id="name" placeholder="名前" required />
-      <textarea id="message" placeholder="メッセージ" required></textarea>
-      <button type="submit">投稿</button>
-    </form>
-    <hr/>
-    <div id="posts"></div>
+  <div class="container" id="mainView">
+    <h2>スレッド一覧</h2>
+    <div id="threadList"></div>
+    <h3>スレッドを立てる</h3>
+    <input type="text" id="newTitle" placeholder="スレッドタイトル" />
+    <textarea id="newMessage" placeholder="本文"></textarea>
+    <button onclick="createThread()">スレッド作成</button>
+  </div>
+
+  <div class="container" id="threadView" style="display: none;">
+    <span class="back-link" onclick="showMain()">← スレッド一覧へ戻る</span>
+    <h2 id="threadTitle"></h2>
+    <div id="postList"></div>
+    <textarea id="replyMessage" placeholder="レスを入力"></textarea>
+    <button onclick="addPost()">書き込む</button>
   </div>
 
   <script>
-    const postForm = document.getElementById("postForm");
-    const postsDiv = document.getElementById("posts");
+    let threads = JSON.parse(localStorage.getItem("threads") || "[]");
+    let currentThreadIndex = null;
 
-    postForm.addEventListener("submit", function(e) {
-      e.preventDefault();
+    function saveThreads() {
+      localStorage.setItem("threads", JSON.stringify(threads));
+    }
 
-      const name = document.getElementById("name").value.trim();
-      const message = document.getElementById("message").value.trim();
-      const time = new Date().toLocaleString();
-
-      if (name && message) {
-        const postElement = document.createElement("div");
-        postElement.className = "post";
-        postElement.innerHTML = `
-          <div class="meta"><strong>${escapeHtml(name)}</strong> - ${time}</div>
-          <div class="content">${escapeHtml(message)}</div>
-        `;
-        postsDiv.prepend(postElement);
-
-        postForm.reset();
-      }
-    });
-
-    // XSS対策：HTMLエスケープ
     function escapeHtml(str) {
       const div = document.createElement("div");
       div.textContent = str;
       return div.innerHTML;
     }
+
+    function renderThreadList() {
+      const list = document.getElementById("threadList");
+      list.innerHTML = "";
+      threads.forEach((thread, index) => {
+        const div = document.createElement("div");
+        div.className = "thread";
+        div.innerHTML = `<strong>${escapeHtml(thread.title)}</strong><br>
+                         <span class="meta">${thread.posts.length}レス</span>`;
+        div.onclick = () => openThread(index);
+        list.appendChild(div);
+      });
+    }
+
+    function createThread() {
+      const title = document.getElementById("newTitle").value.trim();
+      const message = document.getElementById("newMessage").value.trim();
+      if (!title || !message) return alert("タイトルと本文を入力してください。");
+
+      threads.unshift({
+        title,
+        posts: [
+          { message, time: new Date().toLocaleString() }
+        ]
+      });
+      saveThreads();
+      document.getElementById("newTitle").value = "";
+      document.getElementById("newMessage").value = "";
+      renderThreadList();
+    }
+
+    function openThread(index) {
+      currentThreadIndex = index;
+      const thread = threads[index];
+      document.getElementById("threadTitle").textContent = thread.title;
+      renderPosts();
+      document.getElementById("mainView").style.display = "none";
+      document.getElementById("threadView").style.display = "block";
+    }
+
+    function showMain() {
+      document.getElementById("threadView").style.display = "none";
+      document.getElementById("mainView").style.display = "block";
+      renderThreadList();
+    }
+
+    function renderPosts() {
+      const postList = document.getElementById("postList");
+      postList.innerHTML = "";
+      threads[currentThreadIndex].posts.forEach(post => {
+        const div = document.createElement("div");
+        div.className = "post";
+        div.innerHTML = `<div>${escapeHtml(post.message)}</div>
+                         <div class="meta">${post.time}</div>`;
+        postList.appendChild(div);
+      });
+    }
+
+    function addPost() {
+      const message = document.getElementById("replyMessage").value.trim();
+      if (!message) return alert("書き込み内容が空です。");
+      threads[currentThreadIndex].posts.push({
+        message,
+        time: new Date().toLocaleString()
+      });
+      saveThreads();
+      document.getElementById("replyMessage").value = "";
+      renderPosts();
+    }
+
+    renderThreadList();
   </script>
 </body>
 </html>
